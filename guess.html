@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#8a6bd6">
+<title>Number Duel</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#3b2250}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+body{margin:0;font-family:Nunito,system-ui,sans-serif;font-weight:700;color:var(--ink);min-height:100dvh;overflow-x:hidden;
+background:radial-gradient(circle at 15% 0,#ffd6ec,transparent 45%),radial-gradient(circle at 100% 30%,#cfe8ff,transparent 50%),linear-gradient(#fff8e6,#fff0f7)}
+#bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+#bg i{position:absolute;bottom:-60px;border-radius:50%;opacity:.5;animation:float linear infinite;background:radial-gradient(circle at 30% 25%,#fff9,transparent 40%),var(--c);box-shadow:inset 0 -5px 8px #0003}
+@keyframes float{to{transform:translateY(-115vh) rotate(360deg)}}
+.screen{display:none;position:relative;z-index:1;min-height:100dvh;max-width:460px;margin:auto;padding:16px 16px 28px;flex-direction:column;align-items:center}
+.screen.on{display:flex;animation:in .4s ease}
+@keyframes in{from{opacity:0;transform:translateY(16px)}}
+.logo{display:flex;gap:6px;align-items:center;font-weight:900}
+.logo b{display:grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;color:#fff;text-shadow:0 2px 0 #0003;background:radial-gradient(circle at 30% 25%,#fff8,transparent 40%),var(--c);box-shadow:inset 0 -4px 6px #0003,0 5px 10px #0002}
+.logo.big{font-size:3rem;margin-top:12vh}.logo.big+h2{margin:6px 0 4px;font-size:1.6rem;font-weight:900;letter-spacing:.04em}.logo.sm{font-size:1rem}
+.sub{opacity:.7;margin:0 0 26px;text-align:center}
+.card{width:100%;background:#fffd;border-radius:26px;padding:18px;box-shadow:0 10px 30px #8a4fff22}
+#name{width:100%;font:inherit;font-size:1.15rem;padding:15px 18px;border-radius:18px;border:3px solid #e7d6ff;outline:0;text-align:center;margin-bottom:12px;background:#fff}
+#name:focus{border-color:#ff6fa8}
+.btn{font:inherit;font-weight:900;font-size:1.1rem;border:0;color:#fff;padding:14px 22px;border-radius:999px;cursor:pointer;width:100%;background:linear-gradient(#ff8ac0,#ff4f93);box-shadow:0 6px 0 #c42f6c,0 10px 18px #ff4f9344;transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(5px);box-shadow:0 1px 0 #c42f6c}.btn:disabled{opacity:.5;pointer-events:none}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 4px 0 #e0cdf5;padding:9px 14px;font-size:.85rem;width:auto}.btn.ghost:active{box-shadow:none}
+.err{color:#d81b60;min-height:1.4em;margin:8px 0 0;text-align:center}
+.top{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:6px 12px;box-shadow:0 3px 8px #8a4fff1a;font-size:.85rem}
+.dot{width:10px;height:10px;border-radius:50%;background:#43A047;box-shadow:0 0 0 3px #43a04733}.dot.gray{background:#b9a9cc;box-shadow:0 0 0 3px #b9a9cc33}
+.dot.off{background:#FB8C00;box-shadow:0 0 0 3px #fb8c0033;animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.3}}
+.av{display:block;width:64px;height:64px;border-radius:50%;overflow:hidden;box-shadow:0 5px 12px #0003;border:3px solid #fff;flex:none}.av svg{display:block;width:100%;height:100%}
+.chip .av{width:26px;height:26px;border-width:2px;box-shadow:none}
+#turn{margin:12px 0 10px;padding:10px 22px;border-radius:999px;font-weight:900;font-size:1.05rem;color:#fff;background:#8a6bd6;transition:background .4s}
+#turn.mine{background:linear-gradient(90deg,#43A047,#1E88E5)}#turn.swap{animation:swap .5s}@keyframes swap{40%{transform:scale(1.12) rotate(-2deg)}}
+.pick{text-align:center}.pick h3{margin:0 0 10px;font-size:1.2rem;font-weight:900}
+#tw{margin-bottom:6px}#tr{height:14px;border-radius:9px;background:#efe4ff;position:relative;overflow:hidden}
+#tr i{position:absolute;top:0;bottom:0;border-radius:9px;background:linear-gradient(90deg,#ff6fa8,#FDD835,#43A047);transition:left .5s,width .5s}
+#tl{font-size:.85rem;opacity:.75;margin-top:6px}
+#num{width:148px;height:148px;margin:14px auto 4px;border-radius:50%;display:grid;place-items:center;font-size:4rem;font-weight:900;color:#fff;text-shadow:0 3px 0 #0003;
+background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c,#8a6bd6);box-shadow:inset 0 -14px 18px #0004,0 12px 20px #0003;transition:background .15s}
+#num.bump{animation:pop .25s}@keyframes pop{40%{transform:scale(1.15) rotate(6deg)}100%{transform:scale(1)}}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;margin:16px 0;border-radius:9px;background:linear-gradient(90deg,#ff6fa8,#FDD835,#43A047,#1E88E5,#8a6bd6);outline:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:38px;height:38px;border-radius:50%;background:#fff;border:4px solid #ff4f93;box-shadow:0 4px 8px #0003}
+input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:#fff;border:4px solid #ff4f93}
+.steps{display:flex;gap:8px;justify-content:center;margin-bottom:14px}
+.steps button{font:inherit;font-weight:900;border:0;background:#fff;color:var(--ink);border-radius:14px;padding:10px 0;flex:1;box-shadow:0 4px 0 #e0cdf5;cursor:pointer}.steps button:active{transform:translateY(3px);box-shadow:none}
+#wait{margin-top:6px;text-align:center;font-weight:900;font-size:1.1rem}
+#wait span{display:inline-block;width:9px;height:9px;margin:0 2px;border-radius:50%;background:#ff6fa8;animation:bob 1s infinite}#wait span:nth-child(2){animation-delay:.15s}#wait span:nth-child(3){animation-delay:.3s}
+@keyframes bob{50%{transform:translateY(-9px)}}
+#hint{margin:14px 0 0;min-height:2.6em;text-align:center;font-size:1.25rem;font-weight:900}#hint.pop{animation:pop .5s}
+#hist{width:100%;margin-top:6px;display:grid;gap:6px}
+.hr{display:flex;align-items:center;gap:8px;background:#fffb;border-radius:16px;padding:6px 10px;font-size:.9rem;animation:in .3s}
+.hr .av{width:28px;height:28px;border-width:2px;box-shadow:none}.hr em{margin-left:auto;font-style:normal;font-weight:900}
+#react{display:flex;gap:10px;justify-content:center;margin:16px auto 0;padding:8px 12px;border-radius:999px;background:#fffc;box-shadow:0 6px 18px #8a4fff22;transition:opacity .3s}
+#react button{font-size:1.7rem;width:54px;height:54px;border-radius:50%;border:0;background:linear-gradient(#fff,#f3e9ff);box-shadow:0 4px 0 #e0cdf5,0 6px 10px #8a4fff22;cursor:pointer;transition:transform .12s}
+#react button:active{transform:translateY(3px) scale(.88);box-shadow:none}#react.cd{opacity:.55;pointer-events:none}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+#ov{position:fixed;inset:0;z-index:5;display:none;place-items:center;background:#3b2250cc;padding:20px;overflow:auto}#ov.on{display:grid;animation:in .4s}
+#ov .card{text-align:center;max-width:380px}#ov h2{font-size:2.2rem;margin:6px 0}
+#ov .av{width:104px;height:104px;margin:0 auto 4px;position:relative;overflow:visible}#ov .av svg{border-radius:50%}
+#ov.win .card{background:linear-gradient(#fff3b8,#fff);animation:glow 1.2s infinite alternate}@keyframes glow{to{box-shadow:0 0 60px #FDD835}}
+#ov.win .av{animation:hop .6s infinite alternate}@keyframes hop{to{transform:translateY(-14px)}}
+#ov.lose .card{background:linear-gradient(#cfd8e6,#fff)}#ov.lose .av{filter:grayscale(1);animation:sad 2s infinite}@keyframes sad{50%{transform:translateY(6px) rotate(-7deg)}}
+.crown{position:absolute;top:-36px;left:50%;transform:translateX(-50%);font-size:2.4rem;z-index:1}
+.reveal{display:flex;gap:14px;justify-content:center;margin:12px 0 16px}.rn{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.9rem}
+.rn b{width:80px;height:80px;border-radius:50%;display:grid;place-items:center;font-size:2rem;color:#fff;text-shadow:0 2px 0 #0003;background:radial-gradient(circle at 30% 22%,#fffb,transparent 36%),var(--c);box-shadow:inset 0 -9px 12px #0004,0 8px 14px #0003;animation:pop .8s backwards}
+.conf{position:fixed;top:-20px;width:10px;height:16px;z-index:6;border-radius:2px;animation:fall linear forwards;pointer-events:none}@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+#vs{position:fixed;inset:0;z-index:8;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(#3b2250,#ff4f93);overflow:hidden}#vs.on{display:flex;animation:in .3s}
+#vs .av{width:112px;height:112px;border-width:5px}.vp{display:flex;flex-direction:column;align-items:center;gap:8px;color:#fff;font-size:1.6rem;font-weight:900}
+.vp.l{animation:fromL .8s cubic-bezier(.2,1.2,.4,1) backwards}.vp.r{animation:fromR .8s .2s cubic-bezier(.2,1.2,.4,1) backwards}
+@keyframes fromL{from{transform:translateX(-120vw)}}@keyframes fromR{from{transform:translateX(120vw)}}
+.vsb{font-size:3.6rem;font-weight:900;color:#FDD835;text-shadow:0 4px 0 #c42f6c;animation:pop .6s .9s backwards}#vs small{color:#fff;opacity:.85;animation:in .5s 1.3s backwards}
+#splash{position:fixed;inset:0;z-index:7;display:none;place-items:center;font-size:2rem;font-weight:900;text-align:center;background:#fff0f7}#splash.on{display:grid;animation:in .3s}
+.fl{position:fixed;bottom:110px;z-index:9;font-size:2.2rem;pointer-events:none;animation:rise 2.4s ease-out backwards forwards}
+@keyframes rise{0%{transform:translateY(0) scale(.4);opacity:0}15%{opacity:1;transform:translateY(-40px) scale(1.2)}100%{transform:translateY(-60vh) translateX(var(--dx)) rotate(var(--r));opacity:0}}
+.rb{position:fixed;left:50%;top:34%;z-index:9;pointer-events:none;text-align:center;animation:rbp 1.9s forwards}
+.rb b{display:block;font-size:6rem;line-height:1.1;filter:drop-shadow(0 8px 12px #0004)}.rb span{display:inline-block;background:#fffe;border-radius:999px;padding:4px 14px;font-size:.9rem;font-weight:900}
+@keyframes rbp{0%{transform:translate(-50%,0) scale(.2);opacity:0}18%{transform:translate(-50%,0) scale(1.2);opacity:1}32%{transform:translate(-50%,0) scale(1)}75%{opacity:1}100%{transform:translate(-50%,-50px);opacity:0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+
+<section id="login" class="screen on">
+  <div class="logo big"><b style="--c:#E53935">?</b><b style="--c:#FDD835;color:#6a4b00">?</b><b style="--c:#1E88E5">?</b></div>
+  <h2>Number Duel</h2>
+  <p class="sub">Pick a secret. Guess theirs. First to hit wins.</p>
+  <div class="card">
+    <input id="name" aria-label="Username" autocomplete="off" autocapitalize="words" enterkeyhint="go">
+    <button class="btn" id="enter">Enter</button>
+    <p class="err" id="err"></p>
+  </div>
+</section>
+
+<section id="cfg" class="screen">
+  <div class="logo big"><b style="--c:#E53935">!</b></div>
+  <h2>Setup needed</h2>
+  <div class="card"><p id="cfgmsg"></p></div>
+</section>
+
+<section id="play" class="screen">
+  <div class="top">
+    <div class="logo sm"><b style="--c:#E53935">?</b><b style="--c:#FDD835;color:#6a4b00">?</b><b style="--c:#1E88E5">?</b></div>
+    <div class="chip" id="who">–</div>
+    <div class="chip"><span class="dot off" id="dot"></span><span id="conn">Connecting</span></div>
+  </div>
+  <div class="chip" id="opp" style="margin-top:12px"></div>
+  <div id="turn">Loading…</div>
+
+  <div class="card pick" id="pickCard" hidden>
+    <h3 id="ptitle"></h3>
+    <div id="tw" hidden><div id="tr"><i id="tf"></i></div><div id="tl"></div></div>
+    <div id="num">50</div>
+    <input type="range" id="sl" min="1" max="100" value="50">
+    <div class="steps">
+      <button data-d="-10">−10</button><button data-d="-1">−1</button><button id="rand">🎲</button><button data-d="1">+1</button><button data-d="10">+10</button>
+    </div>
+    <button class="btn" id="go">Go</button>
+  </div>
+  <div class="card" id="waitCard" hidden><div id="wait"><span></span><span></span><span></span><div id="waitTxt"></div></div></div>
+
+  <div id="hint"></div>
+  <div id="hist"></div>
+  <div id="react"></div>
+  <div class="ctl">
+    <button class="btn ghost" id="restart">🔄 Restart</button>
+    <button class="btn ghost" id="sound">🔇 Sound off</button>
+    <button class="btn ghost" id="switch">👤 Switch player</button>
+  </div>
+</section>
+
+<div id="ov"><div class="card"><div class="av" id="winAv"></div><h2 id="winTxt"></h2><p id="winSub"></p><div class="reveal" id="reveal"></div><button class="btn" id="again">Play again</button></div></div>
+<div id="vs"><div class="vp l"><div class="av" id="vsA"></div><span>Anouar</span></div><div class="vsb">VS</div><div class="vp r"><div class="av" id="vsB"></div><span>Lyna</span></div><small>Let the duel begin!</small></div>
+<div id="splash"><div id="splashTxt"></div></div>
+
+<script type="module">
+/* ============================================================
+   FIREBASE CONFIG — use the SAME values as your M&M game.
+   Firebase Console → ⚙ Project settings → General → Your apps → firebaseConfig.
+   ============================================================ */
+const FIREBASE_CONFIG = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "YOUR_DATABASE_URL",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.firebasestorage.app",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+const GAME_ROOM = "anouar-lyna-room";   // game data: numbers/<room>   presence + reactions: presence/<room>
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, runTransaction, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const PLAYERS = ["Anouar", "Lyna"], PAL = ["#E53935", "#43A047", "#1E88E5", "#FDD835", "#FB8C00", "#795548"];
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const other = n => n === "Anouar" ? "Lyna" : "Anouar";
+const hue = n => `hsl(${n * 3.4} 78% 52%)`;
+const FACE = '<circle cx="41" cy="51" r="3" fill="#333"/><circle cx="59" cy="51" r="3" fill="#333"/><path d="M42 60q8 7 16 0" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round"/>';
+const AV = {
+  Anouar: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#bfe3ff"/><path d="M20 100c2-22 14-30 30-30s28 8 30 30z" fill="#1E88E5"/><circle cx="50" cy="48" r="23" fill="#f5c9a0"/><path d="M26 46c-3-22 11-31 25-31s27 9 23 31c-4-9-10-13-16-14-8 5-20 6-32 14z" fill="#3b2a20"/>' + FACE + '</svg>',
+  Lyna: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ffd3e8"/><path d="M18 72C12 32 28 12 50 12s38 20 32 60c-3 14-12 14-12 0H30c0 14-9 14-12 0z" fill="#5a2d1b"/><path d="M24 100c2-20 14-28 26-28s24 8 26 28z" fill="#ff6fa8"/><circle cx="50" cy="50" r="22" fill="#f8d2b0"/><path d="M28 48c8-4 18-12 22-20 6 8 14 16 22 20-2-14-12-26-22-26S30 34 28 48z" fill="#5a2d1b"/>' + FACE + '<path d="M70 24l13-9v19zM70 24l-13-9v19z" fill="#ff2d7a"/></svg>'
+};
+const avTag = n => `<span class="av">${AV[n]}</span>`;
+
+let db, roomRef, me = null, game = null, unsub = null, sending = false, introRound = null, pickKey = "", lastHint = "", seq = 0;
+let confettiRound = null, soundOn = false, actx = null;
+let online = {}, presUnsub = null, connUnsub = null, myPresRef = null, lastReact = null, cooling = false;
+
+function show(id){ document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id)); }
+(function(){ for (let i = 0; i < 14; i++){ const e = document.createElement("i"), s = 24 + Math.random()*36;
+  e.style.cssText = `--c:${PAL[i%6]};width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${9+Math.random()*10}s;animation-delay:-${Math.random()*14}s`; $("bg").appendChild(e); } })();
+function beep(f = 520, d = .12){ if (!soundOn) return; try {
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = f;
+  g.gain.setValueAtTime(.15, actx.currentTime); g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + d);
+  o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + d); } catch(e){} }
+
+/* ---------- game logic (all writes are transactions) ---------- */
+const hist = () => Object.values((game && game.history) || {});
+function newGame(round){ return { status:"setup", currentTurn: PLAYERS[Math.floor(Math.random()*2)], round, createdAt: Date.now(), updatedAt: Date.now() }; }
+
+/* Create the game only when the room is empty; never overwrites an existing one. */
+async function initializeGame(){ await runTransaction(roomRef, c => (c && c.status) ? undefined : newGame(1)); }
+
+/* Each player locks in a secret number; when both are in, the duel starts. */
+async function submitSecret(n){
+  await runTransaction(roomRef, g => {
+    if (!g || g.status !== "setup") return;
+    g.secrets = g.secrets || {};
+    if (g.secrets[me] !== undefined) return;
+    g.secrets[me] = n;
+    if (g.secrets[other(me)] !== undefined) g.status = "playing";
+    g.updatedAt = Date.now(); return g;
+  });
+}
+/* A guess targets the OTHER player's secret. Only valid on your own turn. */
+async function processGuess(n){
+  const opp = other(me);
+  await runTransaction(roomRef, g => {
+    if (!g || g.status !== "playing" || g.currentTurn !== me) return;
+    const target = g.secrets[opp], r = n === target ? "hit" : n < target ? "up" : "down";
+    g.history = Object.values(g.history || {}); g.history.push({ p: me, n, r });
+    if (r === "hit"){ g.status = "finished"; g.winner = me; } else g.currentTurn = opp;   // switch turn
+    g.updatedAt = Date.now(); return g;
+  });
+}
+/* Round guard: only one restart is applied even if both players tap at once. */
+async function restartGame(needConfirm){
+  if (!game) return;
+  if (needConfirm && game.status !== "finished" && !confirm("Restart? You will both pick new secret numbers.")) return;
+  const round = game.round || 1;
+  await runTransaction(roomRef, g => (g && (g.round || 1) !== round) ? undefined : newGame(round + 1));
+}
+
+/* ---------- picker ---------- */
+function setNum(v){
+  const sl = $("sl"); v = Math.max(+sl.min, Math.min(+sl.max, Math.round(v))); sl.value = v;
+  const n = $("num"); n.textContent = v; n.style.setProperty("--c", hue(v)); n.classList.remove("bump"); void n.offsetWidth; n.classList.add("bump");
+}
+function myRange(){ let lo = 1, hi = 100;
+  hist().forEach(e => { if (e.p !== me) return; if (e.r === "up") lo = Math.max(lo, e.n + 1); if (e.r === "down") hi = Math.min(hi, e.n - 1); });
+  return [lo, hi]; }
+function configPicker(key, title, btn, lo, hi, showTrack){
+  $("ptitle").textContent = title; $("go").textContent = btn;
+  $("tw").hidden = !showTrack;
+  if (showTrack){ $("tf").style.left = (lo - 1) + "%"; $("tf").style.width = (hi - lo + 1) + "%";
+    $("tl").textContent = `${other(me)}'s number is between ${lo} and ${hi}`; }
+  if (pickKey !== key){ pickKey = key; $("sl").min = lo; $("sl").max = hi; setNum((lo + hi) / 2); }
+}
+async function onGo(){
+  if (sending || !game) return; const n = +$("sl").value; sending = true; $("go").disabled = true; beep(620);
+  try { game.status === "setup" ? await submitSecret(n) : await processGuess(n); }
+  catch(e){ alert("Couldn't send. Try again."); }
+  sending = false; $("go").disabled = false;
+}
+
+/* ---------- render ---------- */
+function renderHistory(){
+  const box = $("hist"); box.textContent = "";
+  hist().slice(-8).reverse().forEach(e => { const row = document.createElement("div"); row.className = "hr";
+    row.innerHTML = avTag(e.p); const t = document.createElement("span"); t.textContent = `${e.p} guessed ${e.n}`;
+    const h = document.createElement("em"); h.textContent = e.r === "up" ? "⬆️ Higher" : e.r === "down" ? "⬇️ Lower" : "🎯 Correct!";
+    row.append(t, h); box.appendChild(row); });
+}
+async function playIntro(){
+  $("vsA").innerHTML = AV.Anouar; $("vsB").innerHTML = AV.Lyna; $("ov").classList.remove("on"); $("vs").classList.add("on"); beep(440, .3);
+  await sleep(2800); $("vs").classList.remove("on");
+}
+async function renderGame(){
+  if (!game || !me) return;
+  const opp = other(me);
+  if (game.status !== "setup" && introRound !== game.round){ introRound = game.round; const id0 = ++seq; await playIntro(); if (id0 !== seq) return; }
+  seq++; show("play");
+  const hs = hist(), st = game.status, t = $("turn"), prev = t.dataset.turn, mine = game.currentTurn === me;
+  const locked = game.secrets && game.secrets[me] !== undefined;
+  let view = "wait", msg = "";
+  if (st === "setup"){
+    if (!locked){ view = "pick"; configPicker(`${game.round}-s`, "Pick your secret number 🤫", "Lock it in 🔒", 1, 100, false); }
+    else msg = `Locked in! Waiting for ${opp}…`;
+    t.textContent = "Choose wisely"; t.className = "";
+  } else {
+    if (st === "playing" && mine){ view = "pick"; const [lo, hi] = myRange();
+      configPicker(`${game.round}-${hs.length}`, `Guess ${opp}'s number 🎯`, "Guess!", lo, hi, true); }
+    else msg = st === "finished" ? "" : `${opp} is thinking…`;
+    t.textContent = st === "finished" ? "Duel over" : mine ? "Your turn! 🎯" : `${opp}'s turn`;
+    t.className = mine && st === "playing" ? "mine" : "";
+    if (prev && prev !== game.currentTurn) t.classList.add("swap");
+    t.dataset.turn = game.currentTurn;
+  }
+  $("pickCard").hidden = view !== "pick"; $("waitCard").hidden = view !== "wait" || !msg; $("waitTxt").textContent = msg;
+  const last = hs[hs.length - 1], hint = $("hint");
+  if (last){ const key = hs.length + "-" + game.round;
+    if (key !== lastHint){ lastHint = key; hint.classList.remove("pop"); void hint.offsetWidth; hint.classList.add("pop"); beep(last.r === "hit" ? 880 : 400, .15); }
+    hint.textContent = last.r === "hit" ? `🎯 ${last.p} found it: ${last.n}!` : `${last.p} said ${last.n} → ${last.r === "up" ? "⬆️ go higher" : "⬇️ go lower"}`;
+  } else { hint.textContent = ""; lastHint = ""; }
+  renderHistory(); renderPresence();
+  st === "finished" ? showResult() : $("ov").classList.remove("on");
+}
+function showResult(){
+  const won = game.winner === me, s = game.secrets || {};
+  $("ov").className = "on " + (won ? "win" : "lose");
+  $("winAv").innerHTML = (won ? '<span class="crown">👑</span>' : "") + AV[me];
+  $("winTxt").textContent = won ? "You win! 🏆" : "You lost 😢";
+  $("winSub").textContent = (won ? `You found ${other(me)}'s number!` : `${game.winner} found your number.`) + ` (${hist().length} guesses)`;
+  const rv = $("reveal"); rv.textContent = "";
+  PLAYERS.forEach((p, i) => { const d = document.createElement("div"); d.className = "rn";
+    const b = document.createElement("b"); b.textContent = s[p]; b.style.setProperty("--c", hue(s[p])); b.style.animationDelay = i * .3 + "s";
+    const n = document.createElement("span"); n.textContent = p + "'s number"; d.append(b, n); rv.appendChild(d); });
+  if (won && confettiRound !== game.round){ confettiRound = game.round; confetti(); beep(880, .4); }
+}
+function confetti(){
+  for (let i = 0; i < 70; i++){ const e = document.createElement("div"); e.className = "conf";
+    e.style.cssText = `left:${Math.random()*100}%;background:${PAL[i%6]};animation-duration:${2+Math.random()*2.5}s;animation-delay:${Math.random()*.8}s`;
+    document.body.appendChild(e); setTimeout(() => e.remove(), 5500); }
+}
+
+/* ---------- realtime sync ---------- */
+function listenToGame(){
+  if (unsub) return;                                                         // never add duplicate listeners
+  unsub = onValue(roomRef, snap => { game = snap.val();
+    if (!game || !game.status){ initializeGame(); return; }                  // empty room → create game
+    renderGame(); },
+    err => showConfigError("Firebase refused access: " + err.message + ". Check your database rules."));
+}
+
+/* ---------- presence + reactions (path: presence/<room>) ---------- */
+function renderPresence(){
+  if (!me) return; const o = other(me), on = !!online[o];
+  $("opp").innerHTML = `<span class="dot${on ? "" : " gray"}"></span>${o} is ${on ? "online" : "offline"}`;
+}
+function startPresence(){
+  if (presUnsub) return;
+  presUnsub = onValue(ref(db, "presence/" + GAME_ROOM), s => { online = s.val() || {}; renderPresence(); handleReaction(); });
+  connUnsub = onValue(ref(db, ".info/connected"), s => {
+    if (s.val() !== true || !me) return;
+    myPresRef = ref(db, `presence/${GAME_ROOM}/${me}`);
+    onDisconnect(myPresRef).set(false).then(() => set(myPresRef, !document.hidden)).catch(() => {});   // auto-offline on disconnect
+  });
+}
+function stopPresence(){
+  if (presUnsub){ presUnsub(); presUnsub = null; } if (connUnsub){ connUnsub(); connUnsub = null; }
+  if (myPresRef){ onDisconnect(myPresRef).cancel(); set(myPresRef, false).catch(() => {}); myPresRef = null; }
+  online = {}; lastReact = null;
+}
+document.addEventListener("visibilitychange", () => { if (myPresRef) set(myPresRef, !document.hidden).catch(() => {}); });
+
+const EMOJIS = ["👏", "🤯", "✨", "🎳"];
+function burst(e, who, mine){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  for (let i = 0; i < 7; i++){ const d = document.createElement("div"); d.className = "fl"; d.textContent = e;
+    d.style.cssText = `left:${12 + Math.random()*72}%;animation-delay:${i*110}ms;--dx:${Math.round(Math.random()*90-45)}px;--r:${Math.round(Math.random()*80-40)}deg;font-size:${1.6+Math.random()*1.4}rem`;
+    document.body.appendChild(d); setTimeout(() => d.remove(), 3200); }
+  if (!mine){ const b = document.createElement("div"); b.className = "rb"; const big = document.createElement("b"), tag = document.createElement("span");
+    big.textContent = e; tag.textContent = who; b.append(big, tag); document.body.appendChild(b); setTimeout(() => b.remove(), 2000); }
+}
+function sendReaction(e){
+  if (!me || cooling || !myPresRef) return;
+  cooling = true; $("react").classList.add("cd"); setTimeout(() => { cooling = false; $("react").classList.remove("cd"); }, 1200);
+  set(ref(db, `presence/${GAME_ROOM}/r_${me}`), { e, t: Date.now() }).catch(() => {});
+  burst(e, me, true); beep(700, .08);
+}
+function handleReaction(){
+  const r = online["r_" + other(me)];
+  if (lastReact === null){ lastReact = r ? r.t : 0; return; }
+  if (r && r.t !== lastReact){ lastReact = r.t; if (EMOJIS.includes(r.e) && Date.now() - r.t < 15000){ burst(r.e, other(me), false); beep(900, .1); } }
+}
+
+/* ---------- login / boot ---------- */
+function loginPlayer(raw){
+  const name = PLAYERS.find(p => p.toLowerCase() === String(raw).trim().toLowerCase());
+  if (!name){ $("err").textContent = "Only Anouar or Lyna can play. Check the spelling!"; return; }
+  me = name; localStorage.setItem("ng_player", name); $("who").innerHTML = avTag(name) + name; $("err").textContent = "";
+  $("splashTxt").textContent = `Welcome, ${name}! 🎯`; $("splash").classList.add("on");
+  setTimeout(() => { $("splash").classList.remove("on"); show("play"); listenToGame(); startPresence(); renderPresence(); }, 1100);
+}
+function switchPlayer(){
+  localStorage.removeItem("ng_player"); me = null; game = null; introRound = null; pickKey = ""; stopPresence();
+  if (unsub){ unsub(); unsub = null; } $("ov").classList.remove("on"); $("name").value = ""; show("login");
+}
+function showConfigError(msg){ $("cfgmsg").textContent = msg; show("cfg"); }
+
+function boot(){
+  $("enter").onclick = () => loginPlayer($("name").value);
+  $("name").onkeydown = e => { if (e.key === "Enter") loginPlayer($("name").value); };
+  $("switch").onclick = switchPlayer;
+  $("restart").onclick = () => restartGame(true);
+  $("again").onclick = () => restartGame(false);
+  $("sound").onclick = () => { soundOn = !soundOn; $("sound").textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off"; beep(700); };
+  $("go").onclick = onGo;
+  $("sl").oninput = () => setNum(+$("sl").value);
+  document.querySelectorAll(".steps [data-d]").forEach(b => b.onclick = () => setNum(+$("sl").value + +b.dataset.d));
+  $("rand").onclick = () => { const lo = +$("sl").min, hi = +$("sl").max; setNum(lo + Math.random() * (hi - lo)); };
+  EMOJIS.forEach(e => { const b = document.createElement("button"); b.textContent = e; b.setAttribute("aria-label", "React " + e); b.onclick = () => sendReaction(e); $("react").appendChild(b); });
+
+  if (Object.values(FIREBASE_CONFIG).some(v => String(v).includes("YOUR_")))
+    return showConfigError("Firebase isn't configured yet. Replace the YOUR_… placeholders in FIREBASE_CONFIG with the same values you used for the M&M game.");
+  try {
+    db = getDatabase(initializeApp(FIREBASE_CONFIG));
+    roomRef = ref(db, "numbers/" + GAME_ROOM);
+    onValue(ref(db, ".info/connected"), s => { const on = s.val() === true; $("dot").classList.toggle("off", !on); $("conn").textContent = on ? "Connected" : "Reconnecting"; });
+  } catch(e){ return showConfigError("Firebase failed to start: " + e.message); }
+  const saved = localStorage.getItem("ng_player"); if (saved) loginPlayer(saved);
+}
+boot();
+</script>
+</body>
+</html>
